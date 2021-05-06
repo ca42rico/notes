@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -12,15 +11,13 @@ import {
   Query
 } from '@nestjs/common';
 import {
-  ApiOkResponse,
   ApiQuery,
   ApiResponse,
   ApiTags
 } from '@nestjs/swagger';
-import * as mongoose from 'mongoose';
 
 import { NotesService } from './notes.service';
-import { AddNoteRequest, GetNoteRequest, GetNoteResponse, GetNotesByDateRequest } from './notes.payloads';
+import { AddNoteRequest, DeleteNoteRequest, GetNoteRequest, GetNoteResponse, GetNotesByDateRequest } from './notes.payloads';
 import { Note } from './notes.schema';
 
 @ApiTags("notes")
@@ -41,7 +38,7 @@ export class NotesController {
 
   @Get()
   @ApiQuery({ type: String, name: "date", required: false })
-  @ApiOkResponse({ type: [GetNoteResponse], description: "List of notes", status: 200 })
+  @ApiResponse({ type: [GetNoteResponse], description: "List of notes", status: 200 })
   @ApiResponse({ description: "Malformed request", status: 400 })
   public async getNotes(@Query() getNotesByDateRequest: GetNotesByDateRequest): Promise<GetNoteResponse[]> {
 
@@ -65,7 +62,7 @@ export class NotesController {
   }
 
   @Get(":id")
-  @ApiOkResponse({ type: GetNoteResponse, description: "Requested note", status: 200 })
+  @ApiResponse({ type: GetNoteResponse, description: "Requested note", status: 200 })
   @ApiResponse({ description: "Note not found", status: 404 })
   @ApiResponse({ description: "Malformed request", status: 400 })
   public async getNote(@Param() getNoteRequest: GetNoteRequest): Promise<GetNoteResponse> {
@@ -87,7 +84,7 @@ export class NotesController {
 
   @Post()
   @HttpCode(201)
-  @ApiOkResponse({ description: "Added new note", status: 201 })
+  @ApiResponse({ description: "Added new note", status: 201 })
   @ApiResponse({ description: "Malformed request", status: 400 })
   public async addNote(@Body() addNoteRequest: AddNoteRequest): Promise<Note> {
 
@@ -100,18 +97,15 @@ export class NotesController {
 
   @Delete(":id")
   @HttpCode(204)
-  @ApiOkResponse({ description: "Deleted note", status: 204 })
+  @ApiResponse({ description: "Deleted note", status: 204 })
   @ApiResponse({ description: "Malformed request", status: 400 })
   @ApiResponse({ description: "Note not found", status: 404 })
-  public async deleteNote(@Param("id") idNote: string) {
+  public async deleteNote(@Param() deleteNoteRequest: DeleteNoteRequest) {
 
-    if (!mongoose.Types.ObjectId.isValid(idNote))
-      throw new BadRequestException("NOT_VALID_ID_TYPE");
-
-    const note = await this.noteService.getNoteById(idNote);
+    const note = await this.noteService.getNoteById(deleteNoteRequest.id);
     if (!note) throw new NotFoundException();
 
-    await this.noteService.deleteNote(idNote);
+    await this.noteService.deleteNote(deleteNoteRequest.id);
 
   }
 
