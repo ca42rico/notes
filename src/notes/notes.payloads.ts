@@ -19,6 +19,8 @@ export class GetNoteRequest {
 
 }
 
+export class DeleteNoteRequest extends GetNoteRequest { }
+
 export class AddNoteRequest {
 
   @ApiProperty({ type: String })
